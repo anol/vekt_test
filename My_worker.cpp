@@ -11,21 +11,43 @@ My_worker::My_worker() :
         m_has_stopped(false) {
 }
 
-double My_worker::get_data()  {
-    std::lock_guard<std::mutex> lock(m_Mutex);
-    return the_data;
+void My_worker::initalize(My_window *window) {
+    optional_caller = window;
 }
 
-void My_worker::update_data(My_window *caller) {
+bool My_worker::has_data(uint32_t index) const {
+    return (index < Number_of_values) && the_flag[index];
+}
+
+double My_worker::get_data(uint32_t index) {
+    std::lock_guard<std::mutex> lock(m_Mutex);
+    return (index < Number_of_values) ? the_data[index] : 0.0;
+}
+
+void My_worker::update_data(uint32_t index) {
     std::lock_guard<std::mutex> lock(m_Mutex);
     the_buffer[the_pos] = 0;
     try {
-        the_data = std::stod(the_buffer);
+        switch (index) {
+            case 0:
+                the_data[0] = std::stod(the_buffer);
+                break;
+            case 1:
+                the_data[1] = std::stod(the_buffer);
+                break;
+            case 2:
+                the_data[2] = std::stod(the_buffer);
+                break;
+            default:
+                break;
+        }
     }
     catch (...) {
     }
     the_pos = 0;
-    caller->notify();
+    if (optional_caller) {
+        optional_caller->notify();
+    }
 }
 
 void My_worker::stop_work() {
@@ -38,15 +60,15 @@ bool My_worker::has_stopped() const {
     return m_has_stopped;
 }
 
-void My_worker::do_work(My_window *caller) {
+void My_worker::do_work(const char *port_name) {
     {
         std::lock_guard<std::mutex> lock(m_Mutex);
         m_has_stopped = false;
     }
-    std::cout << "Hi there!" << std::endl;
-    auto fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY);
+    std::cout << "\r\n Hi there " << port_name << std::endl;
+    auto fd = open(port_name, O_RDWR | O_NOCTTY);
     if (fd == -1) {
-        perror("<> open_port: Unable to open /dev/ttyUSB0 <>");
+        perror(port_name);
         return;
     }
     struct termios options{};
@@ -55,6 +77,7 @@ void My_worker::do_work(My_window *caller) {
     cfsetospeed(&options, B115200);
     tcsetattr(fd, TCSANOW, &options);
     the_pos = 0;
+    uint32_t index = 0;
     while (!m_shall_stop) {
         char sym;
         while (read(fd, &sym, 1) > 0) {
@@ -63,11 +86,26 @@ void My_worker::do_work(My_window *caller) {
                     switch (sym) {
                         case '\r':
                         case '\n':
-                        case 'x':
                         case '=':
                             break;
+                        case 'x':
+                            index = 0;
+                            the_flag[0] = true;
+                            break;
+                        case 'a':
+                            index = 1;
+                            the_flag[1] = true;
+                            break;
+                        case 'b':
+                            index = 2;
+                            the_flag[2] = true;
+                            break;
+                        case 'c':
+                            index = 3;
+                            the_flag[3] = true;
+                            break;
                         case ';':
-                            update_data(caller);
+                            update_data(index);
                             break;
                         case '.':
                             the_buffer[the_pos++] = ',';
@@ -87,5 +125,5 @@ void My_worker::do_work(My_window *caller) {
         m_shall_stop = false;
         m_has_stopped = true;
     }
-    caller->notify();
+    if (optional_caller) optional_caller->notify();
 }

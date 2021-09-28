@@ -1,0 +1,10 @@
+# Project exclude paths
+/cmake-build-pinator5/
+/.idea/.gitignore
+/.idea/deployment.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/other.xml
+/.idea/Pinator_test.iml
+/.idea/serialmonitor_settings.xml
+/.idea/vcs.xml

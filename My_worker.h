@@ -13,23 +13,29 @@ class My_window;
 
 class My_worker {
     enum {
+        Number_of_values = 4,
         Buffer_size = 16
     };
     char the_buffer[Buffer_size]{};
     int the_pos{};
-    double the_data{};
+    bool the_flag[Number_of_values]{};
+    double the_data[Number_of_values]{};
+    My_window *optional_caller{};
 
 public:
     My_worker();
 
-    // Thread function.
-    void do_work(My_window *caller);
+    void do_work(const char* port_name);
 
-    double get_data();
+    bool has_data(uint32_t index) const;
+
+    double get_data(uint32_t index);
 
     void stop_work();
 
     bool has_stopped() const;
+
+    void initalize(My_window *);
 
 private:
     // Synchronizes access to member data.
@@ -39,7 +45,7 @@ private:
     bool m_shall_stop;
     bool m_has_stopped;
 
-    void update_data(My_window *caller);
+    void update_data(uint32_t index);
 };
 
 

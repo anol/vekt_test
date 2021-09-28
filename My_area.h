@@ -9,11 +9,14 @@
 
 class My_area : public Gtk::DrawingArea {
     double the_value{};
+    uint32_t the_index{};
 
 public:
     My_area();
 
     ~My_area() override;
+
+    void initialize(uint32_t index) { the_index = index; };
 
     void set_value(double value) { the_value = value; }
 
