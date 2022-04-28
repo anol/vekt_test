@@ -89,6 +89,9 @@ void My_worker::do_work(const char *port_name) {
                     case '\r':
                     case '\n':
                     case '=':
+                    case 'P':
+                    case 'W':
+                    case 'T':
                         break;
                     case 'a':
                         index = 0;

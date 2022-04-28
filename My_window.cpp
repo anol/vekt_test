@@ -7,7 +7,7 @@
 
 My_window::My_window() :
         the_box(Gtk::ORIENTATION_VERTICAL),
-        the_button("Dynamometervogn") {
+        the_button("NMDF Dynamometervogn " __DATE__) {
     set_border_width(10);
     the_button.signal_clicked().connect(sigc::mem_fun(*this,
                                                       &My_window::on_button_clicked));
